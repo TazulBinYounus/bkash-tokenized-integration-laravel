@@ -11,19 +11,19 @@
 |
 */
 
-use App\Http\Controllers\BkashController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BkashController;
 
 
 Route::get('bkash', [BkashController::class, 'index'])->name('index');
-// Route::group(['middleware' => ['customAuth']], function () {
+Route::post('bkash/get-token', [BkashController::class, 'getToken'])->name('bkash-get-token');
+Route::post('bkash/create-payment', [BkashController::class, 'createPayment'])->name('bkash-create-payment');
 
 // Payment Routes for bKash
-// Route::post('bkash', 'BkashController@index')->name('index');
-Route::post('bkash/get-token', 'BkashController@getToken')->name('bkash-get-token');
-Route::post('bkash/create-payment', 'BkashController@createPayment')->name('bkash-create-payment');
 Route::post('bkash/execute-payment', 'BkashController@executePayment')->name('bkash-execute-payment');
 Route::get('bkash/query-payment', 'BkashController@queryPayment')->name('bkash-query-payment');
 Route::post('bkash/success', 'BkashController@bkashSuccess')->name('bkash-success');
+// Route::group(['middleware' => ['customAuth']], function () {
+
 
 // });

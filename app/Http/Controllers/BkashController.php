@@ -34,8 +34,10 @@ class BkashController extends Controller
 
     public function index()
     {
-        dd('asd');
         # code...
+        // $getToken = $this->getToken();
+        // dd(session()->get('bkash_token'));
+
         return view('bkash-payment');
     }
 
@@ -77,16 +79,10 @@ class BkashController extends Controller
 
     public function createPayment(Request $request)
     {
-        if (((string) $request->amount != (string) session()->get('bkash')['invoice_amount'])) {
-            return response()->json([
-                'errorMessage' => 'Amount Mismatch',
-                'errorCode' => 2006
-            ], 422);
-        }
-
         $token = session()->get('bkash_token');
 
         $request['intent'] = 'sale';
+        $request['amount'] = '100';
         $request['currency'] = 'BDT';
         $request['merchantInvoiceNumber'] = rand();
 
