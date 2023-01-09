@@ -19,11 +19,19 @@ class BkashController extends Controller
         // bKash Merchant API Information
 
         // You can import it from your Database
-        $bkash_app_key = '5tunt4masn6pv2hnvte1sb5n3j'; // bKash Merchant API APP KEY
-        $bkash_app_secret = '1vggbqd4hqk9g96o9rrrp2jftvek578v7d2bnerim12a87dbrrka'; // bKash Merchant API APP SECRET
+        // $bkash_app_key = '5tunt4masn6pv2hnvte1sb5n3j'; // bKash Merchant API APP KEY
+        // $bkash_app_secret = '1vggbqd4hqk9g96o9rrrp2jftvek578v7d2bnerim12a87dbrrka'; // bKash Merchant API APP SECRET
+        // $bkash_username = 'sandboxTestUser'; // bKash Merchant API USERNAME
+        // $bkash_password = 'hWD@8vtzw0'; // bKash Merchant API PASSWORD
+        // $bkash_base_url = 'https://checkout.sandbox.bka.sh/v1.2.0-beta'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
+
+
+
+        $bkash_app_key = '7epj60ddf7id0chhcm3vkejtab'; // bKash Merchant API APP KEY
+        $bkash_app_secret = '18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f'; // bKash Merchant API APP SECRET
         $bkash_username = 'sandboxTestUser'; // bKash Merchant API USERNAME
         $bkash_password = 'hWD@8vtzw0'; // bKash Merchant API PASSWORD
-        $bkash_base_url = 'https://checkout.sandbox.bka.sh/v1.2.0-beta'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
+        $bkash_base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
 
         $this->app_key = $bkash_app_key;
         $this->app_secret = $bkash_app_secret;
@@ -75,6 +83,43 @@ class BkashController extends Controller
         session()->put('bkash_token', $response['id_token']);
 
         return response()->json(['success', true]);
+    }
+
+    public function createAgrement(Request $request)
+    {
+        $token = session()->get('bkash_token');
+
+        $mode = '0000';
+        $payerReference = '01932245768';
+        $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
+
+        $createagreementbody = array(
+            'payerReference' => $payerReference,
+            'callbackURL' => $callbackURL,
+            'mode' => $mode,
+        );
+
+
+
+        $url = curl_init("$this->base_url/tokenized/checkout/create");
+        $createagreementbodyx = json_encode($createagreementbody);
+        $header = array(
+            'Content-Type:application/json',
+            "authorization: $token",
+            "x-app-key: $this->app_key"
+        );
+
+        dd($header);
+
+        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $createagreementbodyx);
+        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        $resultdata = curl_exec($url);
+        curl_close($url);
+        return json_decode($resultdata, true);
     }
 
     public function createPayment(Request $request)

@@ -19,6 +19,9 @@
     {{-- <script id="myScript"--}}
     {{-- src="https://scripts.pay.bka.sh/versions/1.2.0-beta/checkout/bKash-checkout.js"></script>--}}
 
+    <button class="btn btn-success" onclick="createAgreement()">
+        Add New Acount
+    </button>
 
     <button class="btn btn-success" id="bKash_button" onclick="BkashPayment()">
         Pay with bKash
@@ -53,6 +56,34 @@
                 }
             });
         }
+
+        function createAgreement(request) {
+            $.ajax({
+                url: "{{ route('bkash-create-agrement') }}",
+                data: JSON.stringify(request),
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(data) {
+                    // hideLoading();
+                    console.log(data);
+
+                    if (data && data.paymentID != null) {
+                        paymentID = data.paymentID;
+                        bKash.create().onSuccess(data);
+                    } else {
+                        bKash.create().onError();
+                    }
+                },
+                error: function(err) {
+                    hideLoading();
+
+                    showErrorMessage(err.responseJSON);
+                    bKash.create().onError();
+                }
+            });
+        }
+
+
 
 
         let paymentID = '';
@@ -110,7 +141,7 @@
         });
 
         function createPayment(request) {
-            alert('createPayment');
+            // alert('createPayment');
             // Amount already checked and verified by the controller
             // because of createRequest function finds amount from this request
             // max two decimal points allowed
@@ -120,7 +151,7 @@
 
 
             $.ajax({
-                url: "{{ route('bkash-create-payment') }}",
+                url: "{{ route('bkash-create-agrement') }}",
                 data: JSON.stringify(request),
                 type: 'POST',
                 contentType: 'application/json',
