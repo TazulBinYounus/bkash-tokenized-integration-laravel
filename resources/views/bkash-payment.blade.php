@@ -93,7 +93,7 @@
             paymentMode: 'checkout',
             paymentRequest: {},
             createRequest: function(request) {
-                alert('createPayment called');
+                // alert('createPayment called');
                 setTimeout(function() {
                     // createPayment(request);
                     createAgreement(request);
