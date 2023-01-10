@@ -16,6 +16,18 @@ class BkashController extends Controller
 
     public function __construct()
     {
+
+        // $config = [
+        // 	"base_url" => "https://tokenized.sandbox.bka.sh/v1.2.0-beta/",
+        // 	"app_key" => "7epj60ddf7id0chhcm3vkejtab",
+        // 	"app_secret" => "18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f",
+        //     "username" => "sandboxTokenizedUser01",
+        // 	"password" => "sandboxTokenizedUser12345",
+        // 	"amount"   => "2",
+        // 	"merchantInvoiceNumber" => rand(0000,5000)
+        // ];
+
+
         // bKash Merchant API Information
 
         // You can import it from your Database
@@ -29,9 +41,10 @@ class BkashController extends Controller
 
         $bkash_app_key = '7epj60ddf7id0chhcm3vkejtab'; // bKash Merchant API APP KEY
         $bkash_app_secret = '18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f'; // bKash Merchant API APP SECRET
-        $bkash_username = 'sandboxTestUser'; // bKash Merchant API USERNAME
-        $bkash_password = 'hWD@8vtzw0'; // bKash Merchant API PASSWORD
+        $bkash_username = 'sandboxTokenizedUser01'; // bKash Merchant API USERNAME
+        $bkash_password = 'sandboxTokenizedUser12345'; // bKash Merchant API PASSWORD
         $bkash_base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
+        // $bkash_base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
 
         $this->app_key = $bkash_app_key;
         $this->app_secret = $bkash_app_secret;
@@ -58,10 +71,12 @@ class BkashController extends Controller
             'app_secret' => $this->app_secret
         );
 
-        $url = curl_init("$this->base_url/checkout/token/grant");
+        // $url = curl_init("$this->base_url/checkout/token/grant");
+        $url = curl_init("$this->base_url/tokenized/checkout/token/grant");
         $post_token = json_encode($post_token);
         $header = array(
             'Content-Type:application/json',
+            'Accept:application/json',
             "password:$this->password",
             "username:$this->username"
         );
@@ -75,6 +90,7 @@ class BkashController extends Controller
         curl_close($url);
 
         $response = json_decode($resultdata, true);
+        // dd($response);
 
         if (array_key_exists('msg', $response)) {
             return $response;
@@ -89,9 +105,11 @@ class BkashController extends Controller
     {
         $token = session()->get('bkash_token');
 
+        // dd($token);
         $mode = '0000';
         $payerReference = '01932245768';
         $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
+        // $callbackURL = 'https://bkash-tokenized-payment.test/';
 
         $createagreementbody = array(
             'payerReference' => $payerReference,
@@ -109,7 +127,8 @@ class BkashController extends Controller
             "x-app-key: $this->app_key"
         );
 
-        dd($header);
+        // dd($header);
+
 
         curl_setopt($url, CURLOPT_HTTPHEADER, $header);
         curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
@@ -119,6 +138,7 @@ class BkashController extends Controller
         curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         $resultdata = curl_exec($url);
         curl_close($url);
+
         return json_decode($resultdata, true);
     }
 

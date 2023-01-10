@@ -44,7 +44,10 @@
                 type: 'POST',
                 contentType: 'application/json',
                 success: function(data) {
-                    $('pay-with-bkash-button').trigger('click');
+                    // $('pay-with-bkash-button').trigger('click');
+                    setTimeout(function() {
+                        createAgreement(request);
+                    }, 2000)
 
                     if (data.hasOwnProperty('msg')) {
                         showErrorMessage(data) // unknown error
@@ -65,14 +68,13 @@
                 contentType: 'application/json',
                 success: function(data) {
                     // hideLoading();
-                    console.log(data);
+                    console.log(data.statusMessage);
 
-                    if (data && data.paymentID != null) {
-                        paymentID = data.paymentID;
-                        bKash.create().onSuccess(data);
-                    } else {
-                        bKash.create().onError();
+                    if (data.statusMessage == 'Successful') {
+                        window.location.replace(data.bkashURL);
                     }
+
+
                 },
                 error: function(err) {
                     hideLoading();
@@ -91,22 +93,25 @@
             paymentMode: 'checkout',
             paymentRequest: {},
             createRequest: function(request) {
-                // alert('asd');
+                alert('createPayment called');
                 setTimeout(function() {
-                    createPayment(request);
+                    // createPayment(request);
+                    createAgreement(request);
                 }, 2000)
             },
 
             executeRequestOnAuthorization: function(request) {
-
+                console.log('bkash-execute-agrement start');
                 $.ajax({
-                    url: "{{ route('bkash-execute-payment') }}",
+                    url: "{{ route('bkash-execute-agrement') }}",
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         "paymentID": paymentID
                     }),
                     success: function(data) {
+                        console.log('bkash-execute-agrement');
+                        console.log(data);
                         if (data) {
                             if (data.paymentID != null) {
                                 BkashSuccess(data);
@@ -145,11 +150,6 @@
             // Amount already checked and verified by the controller
             // because of createRequest function finds amount from this request
             // max two decimal points allowed
-
-
-
-
-
             $.ajax({
                 url: "{{ route('bkash-create-agrement') }}",
                 data: JSON.stringify(request),
@@ -157,6 +157,8 @@
                 contentType: 'application/json',
                 success: function(data) {
                     // hideLoading();
+                    console.log('createPayment');
+                    console.log(data);
 
                     if (data && data.paymentID != null) {
                         paymentID = data.paymentID;
