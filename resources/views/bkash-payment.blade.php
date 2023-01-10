@@ -101,7 +101,7 @@
             },
 
             executeRequestOnAuthorization: function(request) {
-                console.log('bkash-execute-agrement start');
+                // console.log('bkash-execute-agrement start');
                 $.ajax({
                     url: "{{ route('bkash-execute-agrement') }}",
                     type: 'POST',
@@ -110,7 +110,7 @@
                         "paymentID": paymentID
                     }),
                     success: function(data) {
-                        console.log('bkash-execute-agrement');
+                        // console.log('bkash-execute-agrement');
                         console.log(data);
                         if (data) {
                             if (data.paymentID != null) {
