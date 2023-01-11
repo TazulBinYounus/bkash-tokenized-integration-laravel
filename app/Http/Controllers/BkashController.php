@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
+use App\Models\Agreement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BkashController extends Controller
 {
@@ -56,10 +58,10 @@ class BkashController extends Controller
     public function index()
     {
         # code...
-        // $getToken = $this->getToken();
-        // dd(session()->get('bkash_token'));
+        $agreements = Agreement::active()->get();
+        // dd($agreements);
 
-        return view('bkash-payment');
+        return view('bkash-payment')->with('agreements', $agreements);
     }
 
     public function getToken()
@@ -108,8 +110,8 @@ class BkashController extends Controller
         // dd($token);
         $mode = '0000';
         $payerReference = '01932245768';
-        $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
-        // $callbackURL = 'https://bkash-tokenized-payment.test/';
+        // $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
+        $callbackURL = 'http://127.0.0.1:8000/callback';
 
         $createagreementbody = array(
             'payerReference' => $payerReference,
@@ -144,15 +146,26 @@ class BkashController extends Controller
 
     public function createPayment(Request $request)
     {
+        $agreementID =  session()->get('agreementID');
         $token = session()->get('bkash_token');
 
-        $request['intent'] = 'sale';
-        $request['amount'] = '100';
-        $request['currency'] = 'BDT';
-        $request['merchantInvoiceNumber'] = rand();
+        $callbackURL = 'http://127.0.0.1:8000/payment-callback';
 
-        $url = curl_init("$this->base_url/checkout/payment/create");
-        $request_data_json = json_encode($request->all());
+        $requestbody = array(
+            'agreementID' => $agreementID,
+            'mode' => '0001',
+            'amount' => '10',
+            'currency' => 'BDT',
+            'intent' => 'sale',
+            'merchantInvoiceNumber' => rand(),
+            'callbackURL' => $callbackURL
+        );
+
+
+        $url = curl_init("$this->base_url/tokenized/checkout/create");
+        $request_data_json = json_encode($requestbody);
+
+        // dd($request_data_json);
         $header = array(
             'Content-Type:application/json',
             "authorization: $token",
@@ -170,12 +183,20 @@ class BkashController extends Controller
         return json_decode($resultdata, true);
     }
 
-    public function executePayment(Request $request)
+    public function executePayment($paymentID)
     {
         $token = session()->get('bkash_token');
 
-        $paymentID = $request->paymentID;
-        $url = curl_init("$this->base_url/checkout/payment/execute/" . $paymentID);
+        // $paymentID = $request->paymentID;
+
+
+        $requestbody = array(
+            'paymentID' => $paymentID
+        );
+
+
+        $url = curl_init("$this->base_url/tokenized/checkout/execute");
+        $requestbodyJson = json_encode($requestbody);
         $header = array(
             'Content-Type:application/json',
             "authorization:$token",
@@ -185,7 +206,9 @@ class BkashController extends Controller
         curl_setopt($url, CURLOPT_HTTPHEADER, $header);
         curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
         curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         $resultdata = curl_exec($url);
         curl_close($url);
         return json_decode($resultdata, true);
@@ -227,5 +250,53 @@ class BkashController extends Controller
         Session::flash('error', 'Noman Error Message');
 
         return response()->json(['status' => false]);
+    }
+
+    public function callback(Request $request)
+    {
+        $paymentID = $request->paymentID;
+        $token = session()->get('bkash_token');
+
+        $requestbody = array(
+            'paymentID' => $paymentID
+        );
+
+        $url = curl_init("$this->base_url/tokenized/checkout/execute");
+        $requestbodyJson = json_encode($requestbody);
+        $header = array(
+            'Content-Type:application/json',
+            "authorization: $token",
+            "x-app-key: $this->app_key"
+        );
+        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
+        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        $resultdata = curl_exec($url);
+        curl_close($url);
+        $resultdata = json_decode($resultdata, true);
+
+        if (isset($resultdata['statusCode'])) {
+            if ($resultdata['statusCode'] == '0000' && $resultdata['agreementStatus'] == 'Completed') {
+                session()->put('agreementID', $resultdata['agreementID']);
+
+                Agreement::create([
+                    'user_id' => Auth::id(),
+                    'agreement_id' => $resultdata['agreementID']
+                ]);
+            }
+        } else {
+            dd($resultdata);
+        }
+        return redirect()->route('bkash');
+    }
+
+    public function paymentCallback(Request $request)
+    {
+        # code...
+        // dd($request->all());
+        return $this->executePayment($request->paymentID);
     }
 }
