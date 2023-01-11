@@ -21,7 +21,6 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 
 Route::group(['middleware' => ['auth']], function () {
-
     Route::get('bkash', [BkashController::class, 'index'])->name('bkash');
     Route::post('bkash/get-token', [BkashController::class, 'getToken'])->name('bkash-get-token');
     Route::post('bkash/create-agrement', [BkashController::class, 'createAgrement'])->name('bkash-create-agrement');
@@ -29,8 +28,8 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('bkash/create-payment', [BkashController::class, 'createPayment'])->name('bkash-create-payment');
     Route::post('bkash/execute-payment', [BkashController::class, 'executePayment'])->name('bkash-execute-payment');
-    Route::post('callback', [BkashController::class, 'callback']);
-    Route::get('callback', [BkashController::class, 'callback']);
+    Route::post('agrement-callback', [BkashController::class, 'agrementCallback']);
+    Route::get('agrement-callback', [BkashController::class, 'agrementCallback']);
     Route::post('payment-callback', [BkashController::class, 'paymentCallback']);
     Route::get('payment-callback', [BkashController::class, 'paymentCallback']);
     // Payment Routes for bKash

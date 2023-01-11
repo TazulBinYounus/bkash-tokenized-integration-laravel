@@ -106,21 +106,15 @@ class BkashController extends Controller
     public function createAgrement(Request $request)
     {
         $token = session()->get('bkash_token');
-
-        // dd($token);
         $mode = '0000';
         $payerReference = '01932245768';
-        // $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
-        $callbackURL = 'http://127.0.0.1:8000/callback';
+        $callbackURL = 'http://127.0.0.1:8000/agrement-callback';
 
         $createagreementbody = array(
             'payerReference' => $payerReference,
             'callbackURL' => $callbackURL,
             'mode' => $mode,
         );
-
-
-
         $url = curl_init("$this->base_url/tokenized/checkout/create");
         $createagreementbodyx = json_encode($createagreementbody);
         $header = array(
@@ -128,9 +122,6 @@ class BkashController extends Controller
             "authorization: $token",
             "x-app-key: $this->app_key"
         );
-
-        // dd($header);
-
 
         curl_setopt($url, CURLOPT_HTTPHEADER, $header);
         curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
@@ -142,6 +133,46 @@ class BkashController extends Controller
         curl_close($url);
 
         return json_decode($resultdata, true);
+    }
+
+    public function executeAgrement($paymentID)
+    {
+        $token = session()->get('bkash_token');
+
+        $requestbody = array(
+            'paymentID' => $paymentID
+        );
+
+        $url = curl_init("$this->base_url/tokenized/checkout/execute");
+        $requestbodyJson = json_encode($requestbody);
+        $header = array(
+            'Content-Type:application/json',
+            "authorization: $token",
+            "x-app-key: $this->app_key"
+        );
+        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
+        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        $resultdata = curl_exec($url);
+        curl_close($url);
+        $resultdata = json_decode($resultdata, true);
+
+        if (isset($resultdata['statusCode'])) {
+            if ($resultdata['statusCode'] == '0000' && $resultdata['agreementStatus'] == 'Completed') {
+                session()->put('agreementID', $resultdata['agreementID']);
+
+                Agreement::create([
+                    'user_id' => Auth::id(),
+                    'agreement_id' => $resultdata['agreementID']
+                ]);
+            }
+        } else {
+            dd($resultdata);
+        }
+        return redirect()->route('bkash');
     }
 
     public function createPayment(Request $request)
@@ -186,15 +217,10 @@ class BkashController extends Controller
     public function executePayment($paymentID)
     {
         $token = session()->get('bkash_token');
-
         // $paymentID = $request->paymentID;
-
-
         $requestbody = array(
             'paymentID' => $paymentID
         );
-
-
         $url = curl_init("$this->base_url/tokenized/checkout/execute");
         $requestbodyJson = json_encode($requestbody);
         $header = array(
@@ -252,51 +278,14 @@ class BkashController extends Controller
         return response()->json(['status' => false]);
     }
 
-    public function callback(Request $request)
+    public function agrementCallback(Request $request)
     {
-        $paymentID = $request->paymentID;
-        $token = session()->get('bkash_token');
-
-        $requestbody = array(
-            'paymentID' => $paymentID
-        );
-
-        $url = curl_init("$this->base_url/tokenized/checkout/execute");
-        $requestbodyJson = json_encode($requestbody);
-        $header = array(
-            'Content-Type:application/json',
-            "authorization: $token",
-            "x-app-key: $this->app_key"
-        );
-        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
-        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        $resultdata = curl_exec($url);
-        curl_close($url);
-        $resultdata = json_decode($resultdata, true);
-
-        if (isset($resultdata['statusCode'])) {
-            if ($resultdata['statusCode'] == '0000' && $resultdata['agreementStatus'] == 'Completed') {
-                session()->put('agreementID', $resultdata['agreementID']);
-
-                Agreement::create([
-                    'user_id' => Auth::id(),
-                    'agreement_id' => $resultdata['agreementID']
-                ]);
-            }
-        } else {
-            dd($resultdata);
-        }
-        return redirect()->route('bkash');
+        $this->executeAgrement($request->paymentID);
     }
 
     public function paymentCallback(Request $request)
     {
         # code...
-        // dd($request->all());
         return $this->executePayment($request->paymentID);
     }
 }
