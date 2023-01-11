@@ -19,15 +19,29 @@
     {{-- <script id="myScript"--}}
     {{-- src="https://scripts.pay.bka.sh/versions/1.2.0-beta/checkout/bKash-checkout.js"></script>--}}
 
-    <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
-        Add agrement
-    </button>
+    <center>
+        <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
+            Add new agrement
+        </button>
+        <br>
+        <br>
+        <hr>
 
-    <!-- id="bKash_button" -->
+        <p>Pay with agreement list </p>
+        <hr>
+        <button onclick="BkashPayment()">
+            {{ session()->get('agreementID') }}
+        </button>
 
-    <button class="btn btn-success" onclick="BkashPayment()">
-        Pay with bKash
-    </button>
+
+        <!-- id="bKash_button" -->
+        <!-- 
+        <button class="btn btn-success" onclick="BkashPayment()">
+            Pay with bKash
+        </button> -->
+
+    </center>
+
 
     <script type="text/javascript">
         $.ajaxSetup({

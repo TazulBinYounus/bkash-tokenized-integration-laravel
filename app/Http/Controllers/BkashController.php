@@ -193,7 +193,7 @@ class BkashController extends Controller
         );
 
 
-        $url = curl_init("$this->base_url/checkout/payment/execute/" . $paymentID);
+        $url = curl_init("$this->base_url/tokenized/checkout/execute");
         $requestbodyJson = json_encode($requestbody);
         $header = array(
             'Content-Type:application/json',
@@ -206,6 +206,7 @@ class BkashController extends Controller
         curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
         curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         $resultdata = curl_exec($url);
         curl_close($url);
         return json_decode($resultdata, true);
