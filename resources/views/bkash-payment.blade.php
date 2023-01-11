@@ -23,7 +23,9 @@
         Add agrement
     </button>
 
-    <button class="btn btn-success" id="bKash_button" onclick="BkashPayment()">
+    <!-- id="bKash_button" -->
+
+    <button class="btn btn-success" onclick="BkashPayment()">
         Pay with bKash
     </button>
 
@@ -35,6 +37,15 @@
         });
     </script>
 
+    <!-- // $('pay-with-bkash-button').trigger('click');
+                    // setTimeout(function() {
+                    //     createAgreement(request);
+                    // }, 2000)
+
+                    // if (data.hasOwnProperty('msg')) {
+                    //     showErrorMessage(data) // unknown error
+                    // } -->
+
 
     <script type="text/javascript">
         function BkashPayment() {
@@ -43,19 +54,21 @@
                 url: "{{ route('bkash-create-payment') }}",
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({
-                    "agreementID": "01932245768"
-                }),
+
                 success: function(data) {
                     console.log(data);
-                    // $('pay-with-bkash-button').trigger('click');
+                    // if (data.statusCode == "0000" && data.statusMessage == "Successful") {
+                    //     executePayment(data.paymentID);
+                    // }
+
+                    if (data.statusMessage == 'Successful') {
+                        window.location.replace(data.bkashURL);
+                    }
+
                     // setTimeout(function() {
-                    //     createAgreement(request);
+
                     // }, 2000)
 
-                    // if (data.hasOwnProperty('msg')) {
-                    //     showErrorMessage(data) // unknown error
-                    // }
                 },
                 error: function(err) {
                     hideLoading();
@@ -121,7 +134,7 @@
             paymentMode: 'checkout',
             paymentRequest: {},
             createRequest: function(request) {
-                // alert('createPayment called');
+                alert('createPayment called');
                 setTimeout(function() {
                     // createPayment(request);
                     createAgreement(request);
@@ -200,6 +213,46 @@
 
                     showErrorMessage(err.responseJSON);
                     bKash.create().onError();
+                }
+            });
+        }
+
+        function executePayment(paymentID) {
+            $.ajax({
+                url: "{{ route('bkash-execute-payment') }}",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    "paymentID": paymentID
+                }),
+                success: function(data) {
+                    // console.log('bkash-execute-agrement');
+                    console.log(data);
+                    if (data) {
+                        if (data.paymentID != null) {
+                            BkashSuccess(data);
+                        } else {
+                            showErrorMessage(data);
+                            bKash.execute().onError();
+                        }
+                    } else {
+                        $.get("{{ route('bkash-query-payment') }}", {
+                                payment_info: {
+                                    payment_id: paymentID
+                                }
+                            },
+                            function(data) {
+                                console.log(data);
+                                if (data.transactionStatus === 'Completed') {
+                                    BkashSuccess(data);
+                                } else {
+                                    createPayment(request);
+                                }
+                            });
+                    }
+                },
+                error: function(err) {
+                    bKash.execute().onError();
                 }
             });
         }
