@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
+use App\Models\Agreement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BkashController extends Controller
 {
@@ -56,10 +58,10 @@ class BkashController extends Controller
     public function index()
     {
         # code...
-        // $getToken = $this->getToken();
-        // dd(session()->get('bkash_token'));
+        $agreements = Agreement::active()->get();
+        // dd($agreements);
 
-        return view('bkash-payment');
+        return view('bkash-payment')->with('agreements', $agreements);
     }
 
     public function getToken()
@@ -279,13 +281,15 @@ class BkashController extends Controller
         if (isset($resultdata['statusCode'])) {
             if ($resultdata['statusCode'] == '0000' && $resultdata['agreementStatus'] == 'Completed') {
                 session()->put('agreementID', $resultdata['agreementID']);
+
+                Agreement::create([
+                    'user_id' => Auth::id(),
+                    'agreement_id' => $resultdata['agreementID']
+                ]);
             }
         } else {
             dd($resultdata);
         }
-
-
-
         return redirect()->route('bkash');
     }
 
