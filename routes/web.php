@@ -17,10 +17,14 @@ use App\Http\Controllers\BkashController;
 
 Route::get('bkash', [BkashController::class, 'index'])->name('index');
 Route::post('bkash/get-token', [BkashController::class, 'getToken'])->name('bkash-get-token');
-Route::post('bkash/create-payment', [BkashController::class, 'createPayment'])->name('bkash-create-payment');
 Route::post('bkash/create-agrement', [BkashController::class, 'createAgrement'])->name('bkash-create-agrement');
 Route::post('bkash/execute-agrement', [BkashController::class, 'executeAgrement'])->name('bkash-execute-agrement');
 
+
+
+Route::post('bkash/create-payment', [BkashController::class, 'createPayment'])->name('bkash-create-payment');
+Route::post('callback', [BkashController::class, 'callback']);
+Route::get('callback', [BkashController::class, 'callback']);
 // Payment Routes for bKash
 Route::post('bkash/execute-payment', 'BkashController@executePayment')->name('bkash-execute-payment');
 Route::get('bkash/query-payment', 'BkashController@queryPayment')->name('bkash-query-payment');

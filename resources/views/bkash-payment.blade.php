@@ -19,8 +19,8 @@
     {{-- <script id="myScript"--}}
     {{-- src="https://scripts.pay.bka.sh/versions/1.2.0-beta/checkout/bKash-checkout.js"></script>--}}
 
-    <button class="btn btn-success" onclick="createAgreement()">
-        Add New Acount
+    <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
+        Add agrement
     </button>
 
     <button class="btn btn-success" id="bKash_button" onclick="BkashPayment()">
@@ -38,6 +38,33 @@
 
     <script type="text/javascript">
         function BkashPayment() {
+            // get token
+            $.ajax({
+                url: "{{ route('bkash-create-payment') }}",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    "agreementID": "01932245768"
+                }),
+                success: function(data) {
+                    console.log(data);
+                    // $('pay-with-bkash-button').trigger('click');
+                    // setTimeout(function() {
+                    //     createAgreement(request);
+                    // }, 2000)
+
+                    // if (data.hasOwnProperty('msg')) {
+                    //     showErrorMessage(data) // unknown error
+                    // }
+                },
+                error: function(err) {
+                    hideLoading();
+                    showErrorMessage(err);
+                }
+            });
+        }
+
+        function getBkashToken() {
             // get token
             $.ajax({
                 url: "{{ route('bkash-get-token') }}",
@@ -59,6 +86,7 @@
                 }
             });
         }
+
 
         function createAgreement(request) {
             $.ajax({

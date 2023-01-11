@@ -108,8 +108,8 @@ class BkashController extends Controller
         // dd($token);
         $mode = '0000';
         $payerReference = '01932245768';
-        $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
-        // $callbackURL = 'https://bkash-tokenized-payment.test/';
+        // $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
+        $callbackURL = 'http://127.0.0.1:8000/callback';
 
         $createagreementbody = array(
             'payerReference' => $payerReference,
@@ -144,15 +144,27 @@ class BkashController extends Controller
 
     public function createPayment(Request $request)
     {
+        // dd($request->all());
+        $agreementID = $request->agreementID;
         $token = session()->get('bkash_token');
 
-        $request['intent'] = 'sale';
-        $request['amount'] = '100';
-        $request['currency'] = 'BDT';
-        $request['merchantInvoiceNumber'] = rand();
+        $callbackURL = 'https://merchantdemo.sandbox.bka.sh/';
 
-        $url = curl_init("$this->base_url/checkout/payment/create");
-        $request_data_json = json_encode($request->all());
+        $requestbody = array(
+            'agreementID' => $agreementID,
+            'mode' => '0001',
+            'amount' => '10',
+            'currency' => 'BDT',
+            'intent' => 'sale',
+            'merchantInvoiceNumber' => rand(),
+            'callbackURL' => $callbackURL
+        );
+
+
+        $url = curl_init("$this->base_url/tokenized/checkout/create");
+        $request_data_json = json_encode($requestbody);
+
+        dd($request_data_json);
         $header = array(
             'Content-Type:application/json',
             "authorization: $token",
@@ -227,5 +239,10 @@ class BkashController extends Controller
         Session::flash('error', 'Noman Error Message');
 
         return response()->json(['status' => false]);
+    }
+
+    public function callback(Request $request)
+    {
+        dd($request->all());
     }
 }
