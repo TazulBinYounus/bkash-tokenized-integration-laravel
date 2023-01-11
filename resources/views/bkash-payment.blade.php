@@ -13,38 +13,23 @@
 
 <body>
 
-    <br>
-    <br>
-    <center>
+    <div class="container p-4 text-center">
+        <h2>Bkash Tokenized Payment Process</h2>
+        <hr>
         <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
             Add new agrement
         </button>
-        <br>
-        <br>
         <hr>
 
-        <p>Pay with agreement list </p>
+        <b>Pay with agreement list:</b>
         <hr>
-
-
         @foreach($agreements as $agreement)
         <a onclick="BkashPayment()" class="btn btn-primary">
             {{ $agreement->agreement_id }}
         </a>
-        <br>
-        <br>
+        <hr>
         @endforeach
-
-
-
-
-        <!-- id="bKash_button" -->
-        <!-- 
-        <button class="btn btn-success" onclick="BkashPayment()">
-            Pay with bKash
-        </button> -->
-
-    </center>
+    </div>
 
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
