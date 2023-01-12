@@ -11,7 +11,7 @@ If you already have had enough with the documentation and API references provide
 
 # Getting started
 
-## Installation Laravel Banckend
+## Installation Laravel Project
 
 Clone the repository
 
