@@ -12,9 +12,8 @@
 </head>
 
 <body>
-
     <div class="container p-4 text-center">
-        <h2>Bkash Tokenized Payment Process</h2>
+        <h2>Bkash Tokenized Payment Checkout</h2>
         <hr>
         <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
             Add new agrement
@@ -23,12 +22,17 @@
 
         <b>Pay with agreement list:</b>
         <hr>
-        @foreach($agreements as $agreement)
-        <a onclick="BkashPayment()" class="btn btn-primary">
-            {{ $agreement->agreement_id }}
-        </a>
+        <ul>
+            @foreach($agreements as $agreement)
+            <li class="mb-2">
+                <a onclick="BkashPayment()" class="btn btn-primary">
+                    {{ $agreement->agreement_id }}
+                </a>
+            </li>
+            @endforeach
+        </ul>
+
         <hr>
-        @endforeach
     </div>
 
 
@@ -90,9 +94,10 @@
                 success: function(data) {
                     console.log(data);
                     // $('pay-with-bkash-button').trigger('click');
-                    setTimeout(function() {
-                        createAgreement();
-                    }, 2000)
+                    createAgreement();
+                    // setTimeout(function() {
+                    //     createAgreement();
+                    // }, 2000)
 
                     if (data.hasOwnProperty('msg')) {
                         showErrorMessage(data) // unknown error

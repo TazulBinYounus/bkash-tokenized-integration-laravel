@@ -19,28 +19,6 @@ class BkashController extends Controller
     public function __construct()
     {
 
-        // $config = [
-        // 	"base_url" => "https://tokenized.sandbox.bka.sh/v1.2.0-beta/",
-        // 	"app_key" => "7epj60ddf7id0chhcm3vkejtab",
-        // 	"app_secret" => "18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f",
-        //     "username" => "sandboxTokenizedUser01",
-        // 	"password" => "sandboxTokenizedUser12345",
-        // 	"amount"   => "2",
-        // 	"merchantInvoiceNumber" => rand(0000,5000)
-        // ];
-
-
-        // bKash Merchant API Information
-
-        // You can import it from your Database
-        // $bkash_app_key = '5tunt4masn6pv2hnvte1sb5n3j'; // bKash Merchant API APP KEY
-        // $bkash_app_secret = '1vggbqd4hqk9g96o9rrrp2jftvek578v7d2bnerim12a87dbrrka'; // bKash Merchant API APP SECRET
-        // $bkash_username = 'sandboxTestUser'; // bKash Merchant API USERNAME
-        // $bkash_password = 'hWD@8vtzw0'; // bKash Merchant API PASSWORD
-        // $bkash_base_url = 'https://checkout.sandbox.bka.sh/v1.2.0-beta'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
-
-
-
         $bkash_app_key = '7epj60ddf7id0chhcm3vkejtab'; // bKash Merchant API APP KEY
         $bkash_app_secret = '18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f'; // bKash Merchant API APP SECRET
         $bkash_username = 'sandboxTokenizedUser01'; // bKash Merchant API USERNAME
@@ -59,8 +37,6 @@ class BkashController extends Controller
     {
         # code...
         $agreements = Agreement::active()->get();
-        // dd($agreements);
-
         return view('bkash-payment')->with('agreements', $agreements);
     }
 
@@ -73,7 +49,6 @@ class BkashController extends Controller
             'app_secret' => $this->app_secret
         );
 
-        // $url = curl_init("$this->base_url/checkout/token/grant");
         $url = curl_init("$this->base_url/tokenized/checkout/token/grant");
         $post_token = json_encode($post_token);
         $header = array(
@@ -108,7 +83,7 @@ class BkashController extends Controller
         $token = session()->get('bkash_token');
         $mode = '0000';
         $payerReference = '01932245768';
-        $callbackURL = 'http://127.0.0.1:8000/agrement-callback';
+        $callbackURL = 'http://127.0.0.1:8000/agreement-callback';
 
         $createagreementbody = array(
             'payerReference' => $payerReference,
@@ -135,7 +110,7 @@ class BkashController extends Controller
         return json_decode($resultdata, true);
     }
 
-    public function executeAgrement($paymentID)
+    public function executeAgreement($paymentID)
     {
         $token = session()->get('bkash_token');
 
@@ -174,6 +149,12 @@ class BkashController extends Controller
         }
         return redirect()->route('bkash');
     }
+
+    public function agreementCallback(Request $request)
+    {
+        return $this->executeAgreement($request->paymentID);
+    }
+
 
     public function createPayment(Request $request)
     {
@@ -240,6 +221,11 @@ class BkashController extends Controller
         return json_decode($resultdata, true);
     }
 
+    public function paymentCallback(Request $request)
+    {
+        return $this->executePayment($request->paymentID);
+    }
+
     public function queryPayment(Request $request)
     {
         $token = session()->get('bkash_token');
@@ -276,16 +262,5 @@ class BkashController extends Controller
         Session::flash('error', 'Noman Error Message');
 
         return response()->json(['status' => false]);
-    }
-
-    public function agrementCallback(Request $request)
-    {
-        $this->executeAgrement($request->paymentID);
-    }
-
-    public function paymentCallback(Request $request)
-    {
-        # code...
-        return $this->executePayment($request->paymentID);
     }
 }
