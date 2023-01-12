@@ -1,7 +1,6 @@
 ##  bKash Payment Tokenized Integration
 Hello,
-This is Unofficial guide about integrating bKash payment gateway in your application.
-If you already have had enough with the documentation and API references provided officially by bKash, then this documentation is just for you.
+This is an Unofficial guide about integrating the bKash payment gateway into your application. If you already have had enough of the documentation and API references provided officially by bKash, then this documentation is just for you.
 
 ![agreement_list](https://user-images.githubusercontent.com/44948856/211843828-3c66bb4f-a7f8-49c6-a606-b3a336590867.PNG)
 
