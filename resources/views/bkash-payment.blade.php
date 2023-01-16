@@ -22,12 +22,14 @@
 
         <b>Pay with agreement list:</b>
         <hr>
-        <ul>
+
+        <ul class="list-unstyled">
             @foreach($agreements as $agreement)
             <li class="mb-2">
                 <a onclick="BkashPayment()" class="btn btn-primary">
                     {{ $agreement->agreement_id }}
                 </a>
+                <a href="{{route('remove-agreent', $agreement->id)}}" class="btn btn-danger">Remove</a>
             </li>
             @endforeach
         </ul>
