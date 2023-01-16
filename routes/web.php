@@ -20,6 +20,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('bkash/execute-agrement', [BkashController::class, 'executeAgrement'])->name('bkash-execute-agrement');
     Route::post('agreement-callback', [BkashController::class, 'agreementCallback']);
     Route::get('agreement-callback', [BkashController::class, 'agreementCallback']);
+    Route::get('remove-agreent/{id}', [BkashController::class, 'removeAgreent'])->name('remove-agreent');
+
 
     //payment
     Route::post('bkash/create-payment', [BkashController::class, 'createPayment'])->name('bkash-create-payment');

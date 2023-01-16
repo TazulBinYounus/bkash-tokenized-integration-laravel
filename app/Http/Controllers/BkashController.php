@@ -263,4 +263,13 @@ class BkashController extends Controller
 
         return response()->json(['status' => false]);
     }
+
+    public function removeAgreent($id)
+    {
+        $agreement = Agreement::find($id);
+        if ($agreement) {
+            $agreement = $agreement->delete();
+        }
+        return redirect()->route('bkash');
+    }
 }
