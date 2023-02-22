@@ -18,6 +18,10 @@ class BkashController extends Controller
 
     public function __construct()
     {
+        // Default values which will pass with each request:
+        // Wallet : 01770618575
+        // OTP : 123456
+        // PIN : 12121
 
         $bkash_app_key = '7epj60ddf7id0chhcm3vkejtab'; // bKash Merchant API APP KEY
         $bkash_app_secret = '18mvi27h9l38dtdv110rq5g603blk0fhh5hg46gfb27cp2rbs66f'; // bKash Merchant API APP SECRET
@@ -25,6 +29,18 @@ class BkashController extends Controller
         $bkash_password = 'sandboxTokenizedUser12345'; // bKash Merchant API PASSWORD
         $bkash_base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
         // $bkash_base_url = 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout'; // For Live Production URL: https://checkout.pay.bka.sh/v1.2.0-beta
+
+
+        // https://checkout.sandbox.bka.sh/v1.2.0-beta/
+
+        // $bkash_base_url = 'https://checkout.sandbox.bka.sh/v1.2.0-beta/';
+        // $bkash_app_key = '5nej5keguopj928ekcj3dne8p';
+        // $bkash_app_secret = '1honf6u1c56mqcivtc9ffl960slp4v2756jle5925nbooa46ch62';
+        // $bkash_username = 'testdemo';
+        // $bkash_password = 'test%#de23@msdao';
+        // $amount = '2';
+        // $merchantInvoiceNumber = time() . uniqid();
+
 
         $this->app_key = $bkash_app_key;
         $this->app_secret = $bkash_app_secret;
@@ -78,11 +94,52 @@ class BkashController extends Controller
         return response()->json(['success', true]);
     }
 
+
+    public function createPaymentChechout(Request $request)
+    {
+        $token = session()->get('bkash_token');
+        // dd($token);
+        $mode = '0011';
+        $payerReference = '01770618575';
+        // $callbackURL = 'http://127.0.0.1:8000/checkout-callback';
+        // $callbackURL = 'http://192.168.1.154:8080/bkash-tokenized-payment/public/checkout-callback';
+        $callbackURL = 'http://192.168.1.154:8080/pgw-revamp/Payment.php';
+        $createagreementbody = array(
+            'payerReference' => $payerReference,
+            'callbackURL' => $callbackURL,
+            'mode' => $mode,
+            'amount' => '10',
+            'currency' => 'BDT',
+            'intent' => 'sale',
+            'merchantInvoiceNumber' => 'commonPayment001',
+        );
+        $url = curl_init("$this->base_url/tokenized/checkout/create");
+        $createagreementbodyx = json_encode($createagreementbody);
+        $header = array(
+            'Content-Type:application/json',
+            "authorization: $token",
+            "x-app-key: $this->app_key"
+        );
+
+        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $createagreementbodyx);
+        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        $resultdata = curl_exec($url);
+        curl_close($url);
+
+        return json_decode($resultdata, true);
+    }
+
+
+
     public function createAgrement(Request $request)
     {
         $token = session()->get('bkash_token');
         $mode = '0000';
-        $payerReference = '01932245768';
+        $payerReference = '01770618575';
         $callbackURL = 'http://127.0.0.1:8000/agreement-callback';
 
         $createagreementbody = array(
@@ -221,6 +278,34 @@ class BkashController extends Controller
         return json_decode($resultdata, true);
     }
 
+    public function checkoutExecutePayment($paymentID)
+    {
+        $token = session()->get('bkash_token');
+        // $token = 'eyJraWQiOiJvTVJzNU9ZY0wrUnRXQ2o3ZEJtdlc5VDBEcytrckw5M1NzY0VqUzlERXVzPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiIwZTVjOGU4Ni0xMTQzLTQyNjEtOTJkYy02MTQwMTNhMmNkYTAiLCJhdWQiOiI2cDdhcWVzZmljZTAxazltNWdxZTJhMGlhaCIsImV2ZW50X2lkIjoiMDdmMTQ4NzgtMzAyMy00MDllLTk5MGItZWYzMGZmN2M1MjllIiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE2NzY4MzQxNTIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1zb3V0aGVhc3QtMS5hbWF6b25hd3MuY29tXC9hcC1zb3V0aGVhc3QtMV9yYTNuUFkzSlMiLCJjb2duaXRvOnVzZXJuYW1lIjoic2FuZGJveFRva2VuaXplZFVzZXIwMSIsImV4cCI6MTY3NjgzNzc1MiwiaWF0IjoxNjc2ODM0MTUyfQ.g01AVT36GsWxmXSGCwCiALh2kBVYMEdJ-xvJKfWpX2PXgEK4-NSLsfXY9cxJc6L0zsS6E6ENrj5TSDERha6TLapsDUYgRtz3KkJ0XvwxnvL1gvcLZ1GcCdOkswcuI_a_EKHiaLDFqwI493AmEtupZVp_AMuB2Sh13W36NdCxgsHcnDiAfUe3Kdq7pG_hlv60HPB2QvpYWNpoT7h-mzALV6YpzjEk-lMJvllaQ5UTgameX8ZjhcRCjbObLpuOy7unixwiFB9szcNqML81OEH72af9FaKmyc9FsLTZUM6th_nJIJY4OH7nTvhoARCAxGC-0YeKc3eZITvCMxdNjaS8iA';
+        // $paymentID = $request->paymentID;
+        $requestbody = array(
+            'paymentID' => $paymentID
+        );
+        $url = curl_init("$this->base_url/tokenized/checkout/execute");
+        $requestbodyJson = json_encode($requestbody);
+        $header = array(
+            'Content-Type:application/json',
+            "authorization:$token",
+            "x-app-key:$this->app_key"
+        );
+
+        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
+        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        $resultdata = curl_exec($url);
+        curl_close($url);
+        return json_decode($resultdata, true);
+    }
+
+
     public function paymentCallback(Request $request)
     {
         return $this->executePayment($request->paymentID);
@@ -271,5 +356,26 @@ class BkashController extends Controller
             $agreement = $agreement->delete();
         }
         return redirect()->route('bkash');
+    }
+
+    // http://127.0.0.1:8000/checkout-callback?paymentID=TR0011B01676831671225&status=success&apiVersion=1.2.0-beta
+    public function checkoutCallback(Request $request)
+    {
+        $errData = [
+            'code' => 200,
+            'message' => 'transaction error.'
+        ];
+
+        if ($request->has('paymentID') && $request->has('status')) {
+            if ($request->paymentID && $request->status == 'success') {
+                // dd($request->all());
+
+                return $this->checkoutExecutePayment($request->paymentID);
+            } else if ($request->paymentID && $request->status == 'failure') {
+                return response()->json($errData);
+            } else {
+                return response()->json($errData);
+            }
+        }
     }
 }

@@ -13,6 +13,12 @@
 
 <body>
     <div class="container p-4 text-center">
+        <p>
+            Default values which will pass with each request:
+            Wallet : <strong>01770618575</strong>
+            OTP : <strong>123456</strong>
+            PIN : <strong>12121</strong>
+        </p>
         <h2>Bkash Tokenized Payment Checkout</h2>
         <hr>
         <button class="btn btn-success" id="bKash_button" onclick="getBkashToken()">
@@ -35,6 +41,12 @@
         </ul>
 
         <hr>
+        <hr>
+        <hr>
+        <hr>
+
+        <h2>Checkout Based BkashPayment</h2>
+        <Button onclick="getBkashToken()" class="btn btn-warning"> Checkout</Button>
     </div>
 
 
@@ -96,7 +108,8 @@
                 success: function(data) {
                     console.log(data);
                     // $('pay-with-bkash-button').trigger('click');
-                    createAgreement();
+                    // createAgreement();
+                    createCheckoutPayment();
                     // setTimeout(function() {
                     //     createAgreement();
                     // }, 2000)
@@ -106,7 +119,7 @@
                     }
                 },
                 error: function(err) {
-                    hideLoading();
+                    // hideLoading();
                     showErrorMessage(err);
                 }
             });
@@ -123,6 +136,35 @@
                     console.log(data.statusMessage);
                     if (data.statusMessage == 'Successful') {
                         window.location.replace(data.bkashURL);
+                    }
+                },
+                error: function(err) {
+                    // hideLoading();
+
+                    showErrorMessage(err.responseJSON);
+                    bKash.create().onError();
+                }
+            });
+        }
+
+        function createCheckoutPayment(request) {
+
+            $.ajax({
+                url: "{{ route('bkash-create-payment-checkout')}}",
+                data: JSON.stringify(request),
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(data) {
+                    // hideLoading();
+                    // console.log('createPayment');
+                    console.log(data);
+
+                    if (data && data.paymentID != null) {
+                        paymentID = data.paymentID;
+                        window.location.replace(data.bkashURL);
+                        bKash.create().onSuccess(data);
+                    } else {
+                        bKash.create().onError();
                     }
                 },
                 error: function(err) {
